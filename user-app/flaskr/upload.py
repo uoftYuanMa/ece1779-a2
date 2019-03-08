@@ -10,7 +10,6 @@ from flaskr.openCV import face_detect_cv3
 from flaskr.pillow import thumbs
 import traceback
 from flaskr.login import hash_password
-import mimetypes
 
 @app.route('/upload')
 def upload():
@@ -62,14 +61,10 @@ def save_file(file, userid=''):
             faces = name + '_faces' + type
             faces_thumb = name + '_faces_thumb' + type
 
-            mimetype, _ = mimetypes.guess_type(os.path.join(app.config['UPLOAD_FOLDER'], raw))
-            if mimetype is None:
-                raise Exception("Failed to guess mimetype")
-
-            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], raw), app.config['BUCKET_NAME'], raw, ExtraArgs={"ContentType": mimetype})
-            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], raw_thumb), app.config['BUCKET_NAME'], raw_thumb, ExtraArgs={"ContentType": mimetype})
-            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], faces), app.config['BUCKET_NAME'], faces, ExtraArgs={"ContentType": mimetype})
-            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], faces_thumb), app.config['BUCKET_NAME'], faces_thumb, ExtraArgs={"ContentType": mimetype})
+            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], raw), app.config['BUCKET_NAME'], raw)
+            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], raw_thumb), app.config['BUCKET_NAME'], raw_thumb)
+            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], faces), app.config['BUCKET_NAME'], faces)
+            s3.upload_file(os.path.join(app.config['UPLOAD_FOLDER'], faces_thumb), app.config['BUCKET_NAME'], faces_thumb)
 
             # empty UPLOAD_FOLDER
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], raw))
