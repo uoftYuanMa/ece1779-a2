@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Home</title>
+<!--<link rel="stylesheet" href="static/css/home.css">-->
+<link rel="stylesheet" href="static/lightbox2-master/dist/css/lightbox.min.css">
+{% endblock%}
+
+{% block content %}
+<section>
+    <div class="card">
+    <div class="card-header">
+        Images List
+    </div>
+    <div class="card-body">
+    <ul class="list-group list-group-flush">
+        {% for id, raw_thumb, raw, faces_thumb, faces in images %}
+        <li class="list-group-item">
+          <a class="" href="https://s3.amazonaws.com/ece1779-images/{{ raw }}" data-lightbox="{{ id }}" data-title="Original version">
+              <img src="https://s3.amazonaws.com/ece1779-images/{{ raw_thumb }}" alt=""/>
+          </a>
+          <a class="" href="https://s3.amazonaws.com/ece1779-images/{{ faces }}" data-lightbox="{{ id }}" data-title="Detected version">
+              <img src="https://s3.amazonaws.com/ece1779-images/{{ faces_thumb }}" alt="" />
+          </a>
+        </li>
+        {% endfor %}
+    </ul>
+    </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block footer %}
+<script src="static/lightbox2-master/dist/js/lightbox-plus-jquery.min.js"></script>
+<script src="static/js/home.js"></script>
+{% endblock%}
