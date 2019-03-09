@@ -80,17 +80,18 @@ class AwsClient:
             ],
             Unit='Count'
         )
-
         if 'Datapoints' in response:
             datapoints = []
             for datapoint in response['Datapoints']:
                 datapoints.append([
-                    int(datapoint['Timestamp'].timestamp() * 1000),
+                    int(datapoint['Timestamp'].timestamp()*1000),
                     float(datapoint['Average'])
                 ])
-            return json.dumps(sorted(datapoints, key=lambda x: x[0]))
+            return json.dumps(sorted(datapoints, key=lambda x:x[0]))
         else:
             return []
+
+        pass
 
     def get_idle_instances(self):
         """
