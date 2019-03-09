@@ -61,6 +61,36 @@ class AwsClient:
         :param instance_id: str
         :return: list of [timestamp:int, requests rate:float]
         """
+        end_time = datetime.now() - timedelta(seconds=60)
+        start_time = end_time - timedelta(seconds=3660)
+        response = self.cloudwatch.get_metric_statistics(
+            Namespace='AWS/EC2',
+            MetricName='NetworkPacketsIn',
+            Dimensions=[
+                {
+                    'Name': 'InstanceId',
+                    'Value': instance_id
+                },
+            ],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=60,
+            Statistics=[
+                'Average',
+            ],
+            Unit='Count'
+        )
+        if 'Datapoints' in response:
+            datapoints = []
+            for datapoint in response['Datapoints']:
+                datapoints.append([
+                    int(datapoint['Timestamp'].timestamp()*1000),
+                    float(datapoint['Average'])
+                ])
+            return json.dumps(sorted(datapoints, key=lambda x:x[0]))
+        else:
+            return []
+
         pass
 
     def get_idle_instances(self):
@@ -101,4 +131,4 @@ class AwsClient:
 if __name__ == '__main__':
     awscli = AwsClient()
     #print(awscli.get_workers())
-    print(awscli.get_cpu_utils('i-010c40a69aa1bcbd7'))
+    print(awscli.get_requests_per_minute('i-010c40a69aa1bcbd7'))
