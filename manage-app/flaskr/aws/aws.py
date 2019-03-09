@@ -83,10 +83,12 @@ class AwsClient:
         if 'Datapoints' in response:
             datapoints = []
             for datapoint in response['Datapoints']:
-                datapoints.append([
-                    int(datapoint['Timestamp'].timestamp()*1000),
-                    float(datapoint['Average'])
-                ])
+                for i in range(60//len(response['Datapoints'])):
+                    datapoints.append([
+                        int(datapoint['Timestamp'].timestamp()*1000),
+                        float(datapoint['Average'])
+                    ])
+                
             return json.dumps(sorted(datapoints, key=lambda x:x[0]))
         else:
             return []
@@ -131,4 +133,5 @@ class AwsClient:
 if __name__ == '__main__':
     awscli = AwsClient()
     #print(awscli.get_workers())
+    #print(awscli.get_cpu_utils('i-010c40a69aa1bcbd7'))
     print(awscli.get_requests_per_minute('i-010c40a69aa1bcbd7'))
