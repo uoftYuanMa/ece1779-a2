@@ -114,7 +114,35 @@ class AwsClient:
         return idle instances
         :return: instances: list
         """
-        pass
+        instances_tag = []
+        custom_filter = [{
+            'Name': 'tag:Name',
+            'Values': [self.user_app_tag]}]
+        response = self.ec2.describe_instances(Filters=custom_filter)
+        #instance_id = response['Reservations'][0]['Instances'][0]['InstanceId']
+        reservations = response['Reservations']
+        for reservation in reservations:
+            if len(reservation['Instances']) > 0:
+                instances_tag.append({
+                 'Id': reservation['Instances'][0]['InstanceId']
+                })
+
+        response = self.elb.describe_target_health(
+            TargetGroupArn=self.TargetGroupArn,
+        )
+        instances_target = []
+        if 'TargetHealthDescriptions' in response:
+            for target in response['TargetHealthDescriptions']:
+                instances_target.append({
+                    'Id': target['Target']['Id'],
+                }) 
+
+        diff_list = []
+        for item in instances_tag:
+            if item not in instances_target:
+                diff_list.append(item)
+        
+        return diff_list
 
     def grow_worker_by_one(self):
         """
@@ -148,6 +176,7 @@ if __name__ == '__main__':
     awscli = AwsClient()
     print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     print('get_target_instances:{}'.format(awscli.get_target_instances()))
+    print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
 
 
 
