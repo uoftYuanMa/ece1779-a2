@@ -114,29 +114,18 @@ class AwsClient:
         return idle instances
         :return: instances: list
         """
-        instances_tag = []
-        custom_filter = [{
-            'Name': 'tag:Name',
-            'Values': [self.user_app_tag]}]
-        response = self.ec2.describe_instances(Filters=custom_filter)
-        #instance_id = response['Reservations'][0]['Instances'][0]['InstanceId']
-        reservations = response['Reservations']
-        for reservation in reservations:
-            if len(reservation['Instances']) > 0:
-                instances_tag.append({
-                 'Id': reservation['Instances'][0]['InstanceId']
-                })
-
-        response = self.elb.describe_target_health(
-            TargetGroupArn=self.TargetGroupArn,
-        )
+        instances_tag_raw = self.get_tag_instances()
+        instances_target_raw = self.get_target_instances()
+        instances_tag =[]
         instances_target = []
-        if 'TargetHealthDescriptions' in response:
-            for target in response['TargetHealthDescriptions']:
-                instances_target.append({
-                    'Id': target['Target']['Id'],
-                }) 
-
+        for item in instances_tag_raw:
+            instances_tag.append({
+                'Id': item['Id']
+                })
+        for item in instances_target_raw:
+            instances_target.append({
+                'Id': item['Id']
+                })        
         diff_list = []
         for item in instances_tag:
             if item not in instances_target:
