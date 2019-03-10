@@ -137,8 +137,27 @@ class AwsClient:
         """
         add one instance into the self.TargetGroupArn
         :return: msg: str
+        register_targets(**kwargs)
         """
-        pass
+        first_idle_instance=[]
+        idle_instances = self.get_idle_instances()
+        if idle_instances:
+            first_idle_instance = [{
+                'Id':idle_instances[0]['Id']
+            }]
+            response = self.elb.register_targets(
+                TargetGroupArn=self.TargetGroupArn,
+                Targets=[
+                    {
+                        'Id': first_idle_instance[0]['Id'],
+                        'Port': 5000,
+                    },
+                ]
+            )
+        else:
+            return 'No more idle instances'
+            
+        return response
 
     def grow_worker_by_ratio(self, ratio):
         """
@@ -152,6 +171,7 @@ class AwsClient:
         shrink one instance into the self.TargetGroupArn
         :return: msg: str
         """
+
         pass
 
     def shrink_work_by_ratio(self, ratio):
@@ -163,9 +183,10 @@ class AwsClient:
 
 if __name__ == '__main__':
     awscli = AwsClient()
-    print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
-    print('get_target_instances:{}'.format(awscli.get_target_instances()))
-    print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
+    # print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
+    # print('get_target_instances:{}'.format(awscli.get_target_instances()))
+    # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
+    # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
 
 
 
