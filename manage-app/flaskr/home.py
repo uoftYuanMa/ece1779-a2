@@ -21,7 +21,10 @@ def home():
 
 @app.route('/fetch_workers')
 def fetch_workers():
-    return awscli.get_workers()
+    target_instances = awscli.get_target_instances()
+    ret = {'data': target_instances}
+    return json.dumps(ret)
+
 
 @app.route('/fetch_cpu_utils', methods=['GET', 'POST'])
 def fetch_cpu_utils():

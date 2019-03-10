@@ -4,26 +4,11 @@ from datetime import datetime, timedelta
 
 class AwsClient:
     def __init__(self):
+        self.ec2 = boto3.client('ec2')
         self.elb = boto3.client('elbv2')
         self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:536627286469:targetgroup/target-group1/c0b38de79630ee69'
         self.cloudwatch = boto3.client('cloudwatch')
-
-    def get_workers(self):
-        response = self.elb.describe_target_health(
-            TargetGroupArn=self.TargetGroupArn,
-        )
-        if 'TargetHealthDescriptions' in response:
-            instances = []
-            for target in response['TargetHealthDescriptions']:
-                instances.append({
-                    'Id': target['Target']['Id'],
-                    'Port': target['Target']['Port'],
-                    'State': target['TargetHealth']['State']
-                })
-            ret = {'data': instances}
-            return json.dumps(ret)
-        else:
-            return []
+        self.user_app_tag = 'user-app-ece1779-a2'
 
     def get_cpu_utils(self, instance_id):
         end_time = datetime.now() - timedelta(seconds=60)
@@ -95,6 +80,35 @@ class AwsClient:
 
         pass
 
+    def get_tag_instances(self):
+        instances = []
+        custom_filter = [{
+            'Name': 'tag:Name',
+            'Values': [self.user_app_tag]}]
+        response = self.ec2.describe_instances(Filters=custom_filter)
+        #instance_id = response['Reservations'][0]['Instances'][0]['InstanceId']
+        reservations = response['Reservations']
+        for reservation in reservations:
+            if len(reservation['Instances']) > 0:
+                instances.append({
+                 'Id': reservation['Instances'][0]['InstanceId']
+                })
+        return instances
+
+    def get_target_instances(self):
+        response = self.elb.describe_target_health(
+            TargetGroupArn=self.TargetGroupArn,
+        )
+        instances = []
+        if 'TargetHealthDescriptions' in response:
+            for target in response['TargetHealthDescriptions']:
+                instances.append({
+                    'Id': target['Target']['Id'],
+                    'Port': target['Target']['Port'],
+                    'State': target['TargetHealth']['State']
+                })
+        return instances
+
     def get_idle_instances(self):
         """
         return idle instances
@@ -132,6 +146,13 @@ class AwsClient:
 
 if __name__ == '__main__':
     awscli = AwsClient()
-    #print(awscli.get_workers())
-    #print(awscli.get_cpu_utils('i-010c40a69aa1bcbd7'))
-    print(awscli.get_requests_per_minute('i-010c40a69aa1bcbd7'))
+    print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
+    print('get_target_instances:{}'.format(awscli.get_target_instances()))
+
+
+
+
+
+
+
+
