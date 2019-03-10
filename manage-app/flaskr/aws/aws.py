@@ -137,7 +137,7 @@ class AwsClient:
         """
         idle_instances = self.get_idle_instances()
         if idle_instances:
-            first_idle_instance = idle_instances[0]['Id']
+            first_idle_instance = idle_instances[0]
             response = self.elb.register_targets(
                 TargetGroupArn = self.TargetGroupArn,
                 Targets=[
