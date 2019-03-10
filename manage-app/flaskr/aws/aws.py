@@ -167,9 +167,26 @@ class AwsClient:
         shrink one instance into the self.TargetGroupArn
         :return: msg: str
         """
+        valid = '500'
+        target_instances = self.get_target_instances()
+        if target_instances:
+            for item in target_instances:
+                if item['State'] == 'healthy':
+                    response = self.elb.deregister_targets(
+                        TargetGroupArn = self.TargetGroupArn,
+                        Targets=[
+                            {
+                                'Id': item['Id']
+                            },
+                        ]
+                    )
+                    valid = '200'
+                    break
+        else:
+            return valid
 
-        pass
-
+        return valid
+            
     def shrink_work_by_ratio(self, ratio):
         """
         shrink one instance into the self.TargetGroupArn
@@ -182,5 +199,6 @@ if __name__ == '__main__':
     #print('grow_worker_by_one {}'.format(awscli.grow_worker_by_one()))
     # print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     # print('get_target_instances:{}'.format(awscli.get_target_instances()))
-    print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
-    # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
+    #print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
+    print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
+    #print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
