@@ -114,7 +114,24 @@ class AwsClient:
         return idle instances
         :return: instances: list
         """
-        pass
+        instances_tag_raw = self.get_tag_instances()
+        instances_target_raw = self.get_target_instances()
+        instances_tag =[]
+        instances_target = []
+        for item in instances_tag_raw:
+            instances_tag.append({
+                'Id': item['Id']
+                })
+        for item in instances_target_raw:
+            instances_target.append({
+                'Id': item['Id']
+                })        
+        diff_list = []
+        for item in instances_tag:
+            if item not in instances_target:
+                diff_list.append(item)
+        
+        return diff_list
 
     def grow_worker_by_one(self):
         """
@@ -148,6 +165,7 @@ if __name__ == '__main__':
     awscli = AwsClient()
     print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     print('get_target_instances:{}'.format(awscli.get_target_instances()))
+    print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
 
 
 
