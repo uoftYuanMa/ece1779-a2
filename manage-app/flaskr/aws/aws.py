@@ -67,18 +67,18 @@ class AwsClient:
         )
         if 'Datapoints' in response:
             datapoints = []
+            n = len(response['Datapoints'])
+            m = 60 // n
             for datapoint in response['Datapoints']:
-                for i in range(60//len(response['Datapoints'])):
+                for i in range(m):
                     datapoints.append([
-                        int(datapoint['Timestamp'].timestamp()*1000),
+                        int(datapoint['Timestamp'].timestamp()*1000 + i*60*1000),
                         float(datapoint['Average'])
                     ])
-                
-            return json.dumps(sorted(datapoints, key=lambda x:x[0]))
+            print(len(datapoints))
+            return json.dumps(sorted(datapoints, key=lambda x: x[0]))
         else:
             return []
-
-        pass
 
     def get_tag_instances(self):
         instances = []
