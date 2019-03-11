@@ -160,7 +160,30 @@ class AwsClient:
         add one instance into the self.TargetGroupArn
         :return: msg: str
         """
-        pass
+        idle_instances = self.get_idle_instances()
+        target_instances = self.get_target_instances()
+        register_targets_num =int(len(target_instances) * ratio)
+        response_list = []
+        if len(target_instances) < 1:
+            return "You have no target instance in your group yet."
+        if idle_instances:
+            if len(idle_instances) < register_targets_num:
+                return "Idle instances is not enough"
+            else:
+                for index in range(register_targets_num):
+                    response = self.elb.register_targets(
+                    TargetGroupArn = self.TargetGroupArn,
+                    Targets=[
+                            {
+                                'Id': idle_instances[index],
+                                'Port': 5000
+                            },
+                            ]
+                    ) 
+                    response_list.append(response)
+        else:
+            return 'No more idle instances'
+        return response_list
 
     def shrink_work_by_one(self):
         """
@@ -192,13 +215,39 @@ class AwsClient:
         shrink one instance into the self.TargetGroupArn
         :return: msg: str
         """
-        pass
+        target_instances = self.get_target_instances()
+        response_list =[]
+        if ratio > 1:
+            return "I think you should check your ratio again!"
+        elif len(target_instances)<1 :
+            return "Target instance group is already null"
+        else:
+            shrink_targets_num= i =int(len(target_instances) * ratio)
+            for item in target_instances:
+                if item['State'] == 'healthy':
+                    response = self.elb.deregister_targets(
+                        TargetGroupArn = self.TargetGroupArn,
+                        Targets=[
+                            {
+                                'Id': item['Id']
+                            },
+                        ]
+                    )
+                    response_list.append(response)
+                    i -= 1
+                if i == 0:
+                    break
+        
+        return response_list
+                    
 
 if __name__ == '__main__':
     awscli = AwsClient()
     #print('grow_worker_by_one {}'.format(awscli.grow_worker_by_one()))
     # print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     # print('get_target_instances:{}'.format(awscli.get_target_instances()))
-    #print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
-    print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
-    #print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
+    # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
+    # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
+    # print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
+    # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(2.5)))
+    #print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(0.8)))
