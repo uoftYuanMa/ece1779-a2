@@ -86,6 +86,6 @@ def configure_auto_scaling():
             traceback.print_tb(e.__traceback__)
             return render_template('error.html', msg='something goes wrong~')
 
-def configure_auto_scaling_info():
+def configure_auto_scaling_info(): #这里的函数名和上一个重复了，我加了个info
     #return: latest configure info
     return AutoScalingConfig.query.order_by(desc(AutoScalingConfig.timestamp)).first()
