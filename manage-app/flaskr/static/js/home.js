@@ -24,10 +24,10 @@ $(document).ready(function() {
         });
         console.log(instances)
         if (instances.length > 0) {
-            // show chart in #charts
             showCharts(instances)
         } else {
-            $('#charts').html("");
+            $('#charts1').html("");
+            $('#charts2').html("");
         }
     });
 });
@@ -41,7 +41,7 @@ function showCharts(instances) {
         cache: false,
         processData: false,
         beforeSend: function() {
-            $('#charts').html("<img class='loading' src='static/img/loading.gif'>");
+            $('#charts1').html("<img class='loading' src='static/img/loading.gif'>");
         },
         success: function(data) {
             data = JSON.parse(data);
@@ -55,7 +55,7 @@ function showCharts(instances) {
                 })
             }
 
-            var myChart = Highcharts.stockChart('charts', {
+            var myChart1 = Highcharts.stockChart('charts1', {
                 legend: {
                         enabled: true,
                         align: 'right',
@@ -67,6 +67,47 @@ function showCharts(instances) {
 
                 title: {
                     text: 'Instances CPU Utilities in Worker Pool'
+                },
+
+                series: newdata
+            });
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: '/fetch_requests_rate',
+        data: JSON.stringify(instances),
+        contentType: false,
+        cache: false,
+        processData: false,
+        beforeSend: function() {
+            $('#charts2').html("<img class='loading' src='static/img/loading.gif'>");
+        },
+        success: function(data) {
+            data = JSON.parse(data);
+            newdata = []
+            for (i=0 ; i<data.length ; i++){
+                name = data[i].name
+                info = JSON.parse(data[i].data)
+                newdata.push({
+                    "name": name,
+                    "data": info
+                })
+            }
+
+            var myChart2 = Highcharts.stockChart('charts2', {
+                legend: {
+                        enabled: true,
+                        align: 'right',
+                },
+
+                rangeSelector: {
+                    selected: 1
+                },
+
+                title: {
+                    text: 'Instances Requests rate in Worker Pool'
                 },
 
                 series: newdata
