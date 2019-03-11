@@ -9,7 +9,4 @@ class AutoScalingConfig(db.Model):
     ratio_shrink = db.Column(db.Float)
     timestamp = db.Column(db.DateTime) # A type for datetime.datetime() objects.
     def __repr__(self): # how to print User
-        return '<AutoScalingConfig {}>'.format(self.timestamp)
-
-
-
+        return '<AutoScalingConfig {}>'.format(self.ascid)
