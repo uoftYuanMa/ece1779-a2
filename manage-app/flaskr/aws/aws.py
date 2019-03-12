@@ -106,7 +106,7 @@ class AwsClient:
                 instances.append({
                     'Id': target['Target']['Id'],
                     'Port': target['Target']['Port'],
-                    # 'State': target['TargetHealth']['State']
+                    'State': target['TargetHealth']['State']
                 })
         return instances
 
@@ -184,27 +184,24 @@ class AwsClient:
         """
         idle_instances = self.get_idle_instances()
         target_instances = self.get_target_instances()
-        register_targets_num =int(len(target_instances) * ratio)
+        register_targets_num =int(len((target_instances) * (ratio-1)))
         response_list = []
+        if register_targets_num <= 0:
+            return "Invalid ratio"
         if len(target_instances) < 1:
             return "You have no target instance in your group yet."
         if idle_instances:
             if len(idle_instances) < register_targets_num:
+                #### to be changed to create and launch new instances
                 return "Idle instances is not enough"
             else:
                 for index in range(register_targets_num):
-                    response = self.elb.register_targets(
-                    TargetGroupArn = self.TargetGroupArn,
-                    Targets=[
-                            {
-                                'Id': idle_instances[index],
-                                'Port': 5000
-                            },
-                            ]
-                    ) 
-                    response_list.append(response)
+                    response_list.append(self.grow_worker_by_one())
+        elif len(self.get_tag_instances) > 50:
+            return 'Instance number reaches maximum'
         else:
-            return 'No more idle instances'
+            # here to create and launch new instances
+            pass
         return response_list
 
     def shrink_work_by_one(self):
@@ -214,9 +211,11 @@ class AwsClient:
         """
         valid = '500'
         target_instances = self.get_target_instances()
+        instance_to_be_stopped = ''
         if target_instances:
             for item in target_instances:
                 if item['State'] == 'healthy':
+                    #deregister instance from target group
                     response = self.elb.deregister_targets(
                         TargetGroupArn = self.TargetGroupArn,
                         Targets=[
@@ -225,8 +224,17 @@ class AwsClient:
                             },
                         ]
                     )
+                    instance_to_be_stopped = item['Id']
+                    #stop instance
+                    response = self.ec2.stop_instances(
+                        InstanceIds=[
+                            instance_to_be_stopped,
+                        ],
+                        Hibernate=False,
+                        Force=False
+                    )
                     valid = '200'
-                    break
+                    break                    
         else:
             return valid
 
@@ -269,8 +277,8 @@ if __name__ == '__main__':
     # print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     # print('get_target_instances:{}'.format(awscli.get_target_instances()))
     # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
-    print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
+    # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
     # print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
-    # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(2.5)))
+    print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(3)))
     #print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(0.8)))
     # print('get_specfic_instance_state:{}'.format(awscli.get_specfic_instance_state('i-0c721ce50e7979880')))
