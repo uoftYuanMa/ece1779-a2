@@ -91,7 +91,8 @@ class AwsClient:
         for reservation in reservations:
             if len(reservation['Instances']) > 0:
                 instances.append({
-                 'Id': reservation['Instances'][0]['InstanceId']
+                 'Id': reservation['Instances'][0]['InstanceId'],
+                 'State':reservation['Instances'][0]['State']['Name']
                 })
         return instances
 
@@ -105,7 +106,7 @@ class AwsClient:
                 instances.append({
                     'Id': target['Target']['Id'],
                     'Port': target['Target']['Port'],
-                    'State': target['TargetHealth']['State']
+                    # 'State': target['TargetHealth']['State']
                 })
         return instances
 
@@ -128,6 +129,14 @@ class AwsClient:
                 diff_list.append(item)
         
         return diff_list
+    
+    def get_specfic_instance_state(self,instance_id):
+        """
+        describe specfic state of an instance 
+        """
+        response = self.ec2.describe_instance_status(InstanceIds = [instance_id,]) 
+        # response['InstanceStatuses'][0]['InstanceState']['Name']
+        return response
 
     def grow_worker_by_one(self):
         """
@@ -138,6 +147,19 @@ class AwsClient:
         idle_instances = self.get_idle_instances()
         if idle_instances:
             first_idle_instance = idle_instances[0]
+            # start instance
+            self.ec2.start_instances(
+                InstanceIds=[
+                    first_idle_instance,
+                ]
+            )
+            specfic_state = self.get_specfic_instance_state(first_idle_instance)
+            while len(specfic_state['InstanceStatuses']) < 1:
+                specfic_state = self.get_specfic_instance_state(first_idle_instance)
+                
+            while specfic_state['InstanceStatuses'][0]['InstanceState']['Name'] == 'pending':
+                specfic_state = self.get_specfic_instance_state(first_idle_instance)
+            # surveil if it has finished initializing
             response = self.elb.register_targets(
                 TargetGroupArn = self.TargetGroupArn,
                 Targets=[
@@ -247,7 +269,8 @@ if __name__ == '__main__':
     # print('get_tag_instances:{}'.format(awscli.get_tag_instances()))
     # print('get_target_instances:{}'.format(awscli.get_target_instances()))
     # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
-    # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
+    print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
     # print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
     # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(2.5)))
     #print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(0.8)))
+    # print('get_specfic_instance_state:{}'.format(awscli.get_specfic_instance_state('i-0c721ce50e7979880')))
