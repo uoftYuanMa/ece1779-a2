@@ -1,7 +1,7 @@
 import boto3
 import json
 from datetime import datetime, timedelta
-
+from math import ceil
 class AwsClient:
     def __init__(self):
         self.ec2 = boto3.client('ec2')
@@ -193,12 +193,11 @@ class AwsClient:
         if idle_instances:
             if len(idle_instances) < register_targets_num:
                 #### to be changed to create and launch new instances
-                return "Idle instances is not enough"
+                return "Your instances exceed max number"
             else:
                 for index in range(register_targets_num):
                     response_list.append(self.grow_worker_by_one())
-        elif len(self.get_tag_instances) > 50:
-            return 'Instance number reaches maximum'
+       
         else:
             # here to create and launch new instances
             pass
@@ -247,24 +246,15 @@ class AwsClient:
         """
         target_instances = self.get_target_instances()
         response_list =[]
-        if ratio > 1:
-            return "I think you should check your ratio again!"
+        if ratio < 1:
+            return "Ratio should be more than 1"
         elif len(target_instances)<1 :
             return "Target instance group is already null"
         else:
-            shrink_targets_num= i =int(len(target_instances) * ratio)
+            shrink_targets_num= i =len(target_instances) - ceil(len(target_instances) * round(1/ratio,2))
             for item in target_instances:
-                if item['State'] == 'healthy':
-                    response = self.elb.deregister_targets(
-                        TargetGroupArn = self.TargetGroupArn,
-                        Targets=[
-                            {
-                                'Id': item['Id']
-                            },
-                        ]
-                    )
-                    response_list.append(response)
-                    i -= 1
+                response_list.append(self.shrink_work_by_one())
+                i -= 1
                 if i == 0:
                     break
         
@@ -279,6 +269,6 @@ if __name__ == '__main__':
     # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
     # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
     # print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
-    print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(3)))
-    #print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(0.8)))
+    # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(3)))
+    print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(3)))
     # print('get_specfic_instance_state:{}'.format(awscli.get_specfic_instance_state('i-0c721ce50e7979880')))
