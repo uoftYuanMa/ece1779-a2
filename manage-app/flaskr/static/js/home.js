@@ -32,30 +32,30 @@ $(document).ready(function() {
             deleteInstance(instances)
         } else {
             msg = "No instances chosen."
-            showAlert('alert-warning', msg)
+            showAlert(msg, 'alert-warning')
         }
     });
 
 });
 
-function showAlert(msg, class) {
-    if (class == 'alert-warning') {
+function showAlert(msg, type) {
+    if (type == 'alert-warning') {
         title = "Warning: "
-    } else if (class == 'alert-success') {
+    } else if (type == 'alert-success') {
         title = "Success: "
-    } else if (class == 'alert-danger') {
+    } else if (type == 'alert-danger') {
         title = "Failure: "
     } else { return ''}
 
     msg = "<strong>" + title + "</strong>" + msg
-    alert = "<div class='alert " + class + " alert-warning alert-dismissible fade show' role='alert'>" + msg
+    alert = "<div class='alert " + type + " alert-dismissible fade show' role='alert'>" + msg
     alert += "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span>"
     alert += "</button></div>"
     $('#msg').html(alert)
 }
 
 function loadTable() {
-    var table = $('#workers_table').DataTable({
+    $('#workers_table').DataTable({
         ajax: "/fetch_workers",
         "columns": [
             {
@@ -158,20 +158,17 @@ function showCharts(instances) {
  function addInstance() {
     $.ajax({
         type: 'POST',
-        url: '/add_instance',
+        url: '/grow_one_worker',
         data: '',
         contentType: false,
         cache: false,
         processData: false,
-        beforeSend: function() {
-            $('#workers_table').html("<img class='loading' src='static/img/loading.gif'>");
-        },
         success: function(data) {
             data = JSON.parse(data);
-            if （data.flag == true）{
+            if(data.flag == true) {
                 msg = 'One worker grown.'
                 showAlert(msg, 'alert-success')
-                loadTable()
+                $('#workers_table').DataTable().ajax.reload();
             } else {
                 showAlert(data.msg, 'alert-danger')
             }
@@ -182,20 +179,17 @@ function showCharts(instances) {
 function deleteInstance(instances) {
     $.ajax({
         type: 'POST',
-        url: '/delete_instance',
+        url: '/shrink_one_worker',
         data: JSON.stringify(instances),
         contentType: false,
         cache: false,
         processData: false,
-        beforeSend: function() {
-            $('#workers_table').html("<img class='loading' src='static/img/loading.gif'>");
-        },
         success: function(data) {
             data = JSON.parse(data);
             if (data.flag == true) {
                 msg = "One worker deleted."
                 showAlert(msg, 'alert-success')
-                loadTable()
+                $('#workers_table').DataTable().ajax.reload();
             } else {
                 showAlert(data.msg, 'alert-danger')
             }
