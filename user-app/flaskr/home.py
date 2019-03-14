@@ -1,6 +1,10 @@
 from flask import render_template, url_for, session, redirect
 from flaskr import app
+from flaskr import db
+from datetime import datetime
 from flaskr.models import Image
+from flaskr.models import RequestPerMinute
+from sqlalchemy import desc
 import traceback
 
 def get_faces(img):
@@ -27,3 +31,10 @@ def home():
             # print(e)
             traceback.print_tb(e.__traceback__)
             return render_template('error.html', msg='something goes wrong~')
+
+
+def record_requests(instance_id):
+    requests = RequestPerMinute(instance_id=instance_id, timestamp=datetime.now())
+    db.session.add(requests)
+    db.session.commit()
+    return print(RequestPerMinute.query.order_by(desc(RequestPerMinute.timestamp)).first())
