@@ -6,7 +6,8 @@ class AwsClient:
     def __init__(self):
         self.ec2 = boto3.client('ec2')
         self.elb = boto3.client('elbv2')
-        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:536627286469:targetgroup/target-group1/c0b38de79630ee69'
+        self.TargetGroupArn = \
+            'arn:aws:elasticloadbalancing:us-east-1:536627286469:targetgroup/target-group1/c0b38de79630ee69'
         self.cloudwatch = boto3.client('cloudwatch')
         self.user_app_tag = 'user-app-ece1779-a2'
 
@@ -130,7 +131,7 @@ class AwsClient:
         
         return diff_list
     
-    def get_specfic_instance_state(self,instance_id):
+    def get_specfic_instance_state(self, instance_id):
         """
         describe specfic state of an instance 
         """
