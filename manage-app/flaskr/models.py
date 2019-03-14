@@ -1,6 +1,7 @@
 from flaskr import db
 
 class AutoScalingConfig(db.Model):
+    __tablename__ = 'autoscalingconfig'
     ascid = db.Column(db.Integer, primary_key=True)
     cpu_grow = db.Column(db.Integer)
     cpu_shrink = db.Column(db.Integer)
