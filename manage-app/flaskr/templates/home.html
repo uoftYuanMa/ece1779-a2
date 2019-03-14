@@ -9,9 +9,14 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <button class="btn btn-success" id="show_btn">Show</button>
+        Worker Pool
     </div>
     <div class="card-body">
+        <div id="msg"></div>
+        <button class="btn btn-primary" id="show_btn">Show</button>
+        <button class="btn btn-success" id="add_btn">Add</button>
+        <button class="btn btn-danger" id="delete_btn">Delete</button>
+        <br><br>
         <table id="workers_table" class="display">
             <thead>
                 <tr>
