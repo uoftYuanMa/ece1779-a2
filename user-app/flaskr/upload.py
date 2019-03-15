@@ -2,6 +2,7 @@ from flask import render_template, request, flash, redirect, url_for, session
 from flaskr import app
 from flaskr import db
 from flaskr import s3
+from flaskr import utils
 from werkzeug.utils import secure_filename
 import os
 import hashlib
@@ -13,6 +14,7 @@ from flaskr.login import hash_password
 
 @app.route('/upload')
 def upload():
+    utils.record_requests(app.config['INSTANCE_ID'])
     user = session['user'] if 'user' in session else None
 
     if not user:
@@ -114,6 +116,7 @@ def check_image_request(request):
 
 @app.route('/uploadImage', methods=['GET', 'POST'])
 def upload_image():
+    utils.record_requests(app.config['INSTANCE_ID'])
     try:
         valid, msg, file = check_image_request(request)
         print(msg)
@@ -129,6 +132,7 @@ def upload_image():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_api():
+    utils.record_requests(app.config['INSTANCE_ID'])
     try:
         if request.method != 'POST':
             return 'invalid request method'
