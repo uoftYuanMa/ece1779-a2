@@ -2,6 +2,9 @@ import boto3
 import json
 from datetime import datetime, timedelta
 from math import ceil
+import logging
+from botocore.exceptions import ClientError
+
 class AwsClient:
     def __init__(self):
         self.ec2 = boto3.client('ec2')
@@ -9,6 +12,41 @@ class AwsClient:
         self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:536627286469:targetgroup/target-group1/c0b38de79630ee69'
         self.cloudwatch = boto3.client('cloudwatch')
         self.user_app_tag = 'user-app-ece1779-a2'
+        self.image_id = 'ami-0a7f0cab05389eb82'
+        self.instance_type ='t2.micro'
+        self.keypair_name ='liuweilin17'
+        self.security_group=['launch-wizard-2']
+        self.tag_specification=[{
+            'ResourceType':'instance',
+            'Tags': [
+                {
+                    'Key': 'Name',
+                    'Value': 'user-app-ece1779-a2'
+                },
+            ]
+            },]
+        self.monitoring = {
+            'Enabled': False
+            }
+        self.tag_placement ={
+            'AvailabilityZone': 'us-east-1a'
+            }
+
+    def create_ec2_instance(self):
+        try:
+            response = self.ec2.run_instances(ImageId=self.image_id,
+                                                InstanceType=self.instance_type,
+                                                KeyName=self.keypair_name,
+                                                MinCount=1,
+                                                MaxCount=1,
+                                                SecurityGroups=self.security_group,
+                                                TagSpecifications=self.tag_specification,
+                                                Monitoring = self.monitoring,
+                                                Placement = self.tag_placement)
+        except ClientError as e:
+            logging.error(e)
+            return None
+        return response['Instances'][0]
 
     def get_cpu_utils(self, instance_id):
         end_time = datetime.now() - timedelta(seconds=60)
@@ -175,7 +213,29 @@ class AwsClient:
             else:
                 return 'Fail to register new worker'
         else:
-            return 'No more idle instances'
+            response = self.create_ec2_instance()
+            new_instance_id = response['InstanceId']
+            specfic_state = self.get_specfic_instance_state(new_instance_id)
+            while len(specfic_state['InstanceStatuses']) < 1:
+                specfic_state = self.get_specfic_instance_state(new_instance_id)
+                
+            while specfic_state['InstanceStatuses'][0]['InstanceState']['Name'] == 'pending':
+                specfic_state = self.get_specfic_instance_state(new_instance_id)
+            # surveil if it has finished initializing
+            response = self.elb.register_targets(
+                TargetGroupArn = self.TargetGroupArn,
+                Targets=[
+                    {
+                        'Id': new_instance_id,
+                        'Port': 5000
+                    },
+                ]
+            )
+            if response and 'ResponseMetadata' in response and \
+                    'HTTPStatusCode' in response['ResponseMetadata']:
+                return response['ResponseMetadata']['HTTPStatusCode']
+            else:
+                return 'Fail to create new instance'
 
     def grow_worker_by_ratio(self, ratio):
         """
@@ -190,17 +250,20 @@ class AwsClient:
             return "Invalid ratio"
         if len(target_instances) < 1:
             return "You have no target instance in your group yet."
-        if idle_instances:
-            if len(idle_instances) < register_targets_num:
-                #### to be changed to create and launch new instances
-                return "Your instances exceed max number"
-            else:
-                for index in range(register_targets_num):
-                    response_list.append(self.grow_worker_by_one())
+        # if idle_instances:
+        #     if len(idle_instances) < register_targets_num:
+        #         #### to be changed to create and launch new instances
+        #         for i in range(len(idle_instances)):
+        #             response_list.append(self.grow_worker_by_one())
+        #         for i in range(register_targets_num - len(idle_instances)):
+
+        #     else:
+        #         for index in range(register_targets_num):
+        #             response_list.append(self.grow_worker_by_one())
        
-        else:
-            # here to create and launch new instances
-            pass
+        # else:
+        for i in range(register_targets_num):
+            response_list.append(self.grow_worker_by_one())
         return response_list
 
     def shrink_work_by_one(self):
@@ -269,6 +332,8 @@ if __name__ == '__main__':
     # print('get_idle_instances:{}'.format(awscli.get_idle_instances()))
     # print('grow_worker_by_one:{}'.format(awscli.grow_worker_by_one()))
     # print('shrink_worker_by_one:{}'.format(awscli.shrink_work_by_one()))
-    # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(3)))
-    print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(3)))
+    # print('grow_worker_by_ratio:{}'.format(awscli.grow_worker_by_ratio(4)))
+    # print('shrink_worker_by_ratio:{}'.format(awscli.shrink_work_by_ratio(2)))
     # print('get_specfic_instance_state:{}'.format(awscli.get_specfic_instance_state('i-0c721ce50e7979880')))
+    # print('create_ec2_instances:{}'.format(awscli.create_ec2_instance()))
+    
