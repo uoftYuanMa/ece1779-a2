@@ -49,9 +49,7 @@ class AwsClient:
             return None
         return response['Instances'][0]
 
-    def get_cpu_utils(self, instance_id):
-        end_time = datetime.now() - timedelta(seconds=60)
-        start_time = end_time - timedelta(seconds=3600)
+    def get_cpu_utils(self, instance_id, start_time, end_time):
         response = self.cloudwatch.get_metric_statistics(
             Namespace='AWS/EC2',
             MetricName='CPUUtilization',
@@ -76,48 +74,9 @@ class AwsClient:
                     int(datapoint['Timestamp'].timestamp()*1000),
                     float(datapoint['Maximum'])
                 ])
-            return json.dumps(sorted(datapoints, key=lambda x:x[0]))
-        else:
-            return []
-
-    def get_requests_per_minute(self, instance_id):
-        """
-        :param instance_id: str
-        :return: list of [timestamp:int, requests rate:float]
-        """
-        end_time = datetime.now() - timedelta(seconds=60)
-        start_time = end_time - timedelta(seconds=3660)
-        response = self.cloudwatch.get_metric_statistics(
-            Namespace='AWS/EC2',
-            MetricName='NetworkPacketsIn',
-            Dimensions=[
-                {
-                    'Name': 'InstanceId',
-                    'Value': instance_id
-                },
-            ],
-            StartTime=start_time,
-            EndTime=end_time,
-            Period=60,
-            Statistics=[
-                'Average',
-            ],
-            Unit='Count'
-        )
-        if 'Datapoints' in response:
-            datapoints = []
-            n = len(response['Datapoints'])
-            m = 60 // n
-            for datapoint in response['Datapoints']:
-                for i in range(m):
-                    datapoints.append([
-                        int(datapoint['Timestamp'].timestamp()*1000 + i*60*1000),
-                        float(datapoint['Average'])
-                    ])
-            print(len(datapoints))
             return json.dumps(sorted(datapoints, key=lambda x: x[0]))
         else:
-            return []
+            return json.dumps([[]])
 
     def get_tag_instances(self):
         instances = []

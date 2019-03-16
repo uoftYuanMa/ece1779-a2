@@ -36,6 +36,12 @@ $(document).ready(function() {
         }
     });
 
+    Highcharts.setOptions({
+        time: {
+            timezone: 'Canada/Eastern'
+        }
+    });
+
 });
 
 function showAlert(msg, type) {
