@@ -13,3 +13,4 @@ class Config(object):
     ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg']
     BUCKET_NAME = 'ece1779-images'
     INSTANCE_ID = get_instanceId()
+    ZONE = 'Canada/Eastern'
