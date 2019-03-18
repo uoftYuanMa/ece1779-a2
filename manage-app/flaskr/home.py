@@ -82,7 +82,11 @@ def shrink_one_worker():
         'msg': msg
     })
 
+
 def get_requests_per_minute(instance, start_time, end_time):
+    # delete requests records 3 hours ago
+    # ...
+
     datetimes = RequestPerMinute.query.filter(RequestPerMinute.instance_id == instance) \
         .filter(RequestPerMinute.timestamp <= end_time) \
         .filter(RequestPerMinute.timestamp >= start_time) \
