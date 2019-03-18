@@ -23,17 +23,11 @@ $(document).ready(function() {
     });
 
     $('#delete_btn').on("click", function(){
-        var instances = [];
-        $("input[name=instance]:checked").each( function () {
-            instances.push($(this).val());
-        });
-        // console.log(instances)
-        if (instances.length > 0) {
-            deleteInstance(instances)
-        } else {
-            msg = "No instances chosen."
-            showAlert(msg, 'alert-warning')
-        }
+        deleteInstance()
+    });
+
+    $('#refresh_btn').on("click", function(){
+        $('#workers_table').DataTable().ajax.reload();
     });
 
     Highcharts.setOptions({
@@ -116,6 +110,11 @@ function showCharts(instances) {
 
                 series: newdata
             });
+        },
+        error: function(xhr, textStatus, error){
+            $('#charts1').html("");
+            showAlert("Unable to show the charts 1", "alert-danger")
+            console.log(error)
         }
     });
 
@@ -157,6 +156,11 @@ function showCharts(instances) {
 
                 series: newdata
             });
+        },
+        error: function(xhr, textStatus, error){
+            $('#charts2').html("");
+            showAlert("Unable to show the charts 2", "alert-danger")
+            console.log(error)
         }
     });
  }
@@ -169,6 +173,11 @@ function showCharts(instances) {
         contentType: false,
         cache: false,
         processData: false,
+        beforeSend: function() {
+            $('#add_btn').html("Adding <img class='ajax-loading' src='static/img/ajax-loading.gif'>")
+            $('#add_btn').prop("disabled", true)
+            $('#delete_btn').attr("disabled", true)
+        },
         success: function(data) {
             data = JSON.parse(data);
             if(data.flag == true) {
@@ -178,18 +187,33 @@ function showCharts(instances) {
             } else {
                 showAlert(data.msg, 'alert-danger')
             }
+            $('#add_btn').html("Add")
+            $('#add_btn').prop("disabled", false)
+            $('#delete_btn').attr("disabled", false)
+        },
+        error: function(xhr, textStatus, error){
+            showAlert("Unable to grow a worker", "alert-danger")
+            $('#add_btn').html("Add")
+            $('#add_btn').prop("disabled", false)
+            $('#delete_btn').attr("disabled", false)
+            console.log(error)
         }
     });
  }
 
-function deleteInstance(instances) {
+function deleteInstance() {
     $.ajax({
         type: 'POST',
         url: '/shrink_one_worker',
-        data: JSON.stringify(instances),
+        data: '',
         contentType: false,
         cache: false,
         processData: false,
+        beforeSend: function() {
+            $('#delete_btn').html("Deleting <img class='ajax-loading' src='static/img/ajax-loading.gif'>")
+            $('#add_btn').prop("disabled", true)
+            $('#delete_btn').attr("disabled", true)
+        },
         success: function(data) {
             data = JSON.parse(data);
             if (data.flag == true) {
@@ -199,6 +223,16 @@ function deleteInstance(instances) {
             } else {
                 showAlert(data.msg, 'alert-danger')
             }
+            $('#delete_btn').html("Delete")
+            $('#add_btn').prop("disabled", false)
+            $('#delete_btn').attr("disabled", false)
+        },
+        error: function(xhr, textStatus, error){
+            showAlert("Unable to shrink a worker", "alert-danger")
+            $('#delete_btn').html("Delete")
+            $('#add_btn').prop("disabled", false)
+            $('#delete_btn').attr("disabled", false)
+            console.log(error)
         }
     });
 }

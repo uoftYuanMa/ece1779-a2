@@ -56,13 +56,14 @@ def fetch_reqeusts_rate():
 
 @app.route('/grow_one_worker', methods=['GET', 'POST'])
 def grow_one_worker():
-    if awscli.get_idle_instances():
-        awscli.grow_worker_by_one()
+    response = awscli.grow_worker_by_one()
+
+    if int(response) == 200:
+        msg = "A new worker was registered"
         flag = True
-        msg = 'success'
     else:
+        msg = "Unable to register a new worker"
         flag = False
-        msg = 'no idle instances'
 
     return json.dumps({
         'flag': flag,
@@ -71,13 +72,10 @@ def grow_one_worker():
 
 @app.route('/shrink_one_worker', methods=['GET', 'POST'])
 def shrink_one_worker():
-    if awscli.get_target_instances():
-        awscli.shrink_work_by_one()
-        flag = True
-        msg = 'success'
-    else:
-        flag = False
-        msg = 'No workers in pool'
+    flag, msg = awscli.shrink_worker_by_one()
+
+    if flag:
+        msg = "A worker was unregistered"
 
     return json.dumps({
         'flag': flag,
