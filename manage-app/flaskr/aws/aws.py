@@ -81,6 +81,15 @@ class AwsClient:
                 })
         return instances
 
+    # when the state is draining, the instance is actually out of the target group
+    def get_valid_target_instances(self):
+        target_instances = self.get_target_instances()
+        target_instances_id = []
+        for item in target_instances:
+            if item['State'] != 'draining':
+                target_instances_id.append(item['Id'])
+        return target_instances_id
+
     # we have to make instances in the target group are all running
     # in order to make sure that the idle instances are outside the target group.
     def get_idle_instances(self):
@@ -163,7 +172,7 @@ class AwsClient:
         add one instance into the self.TargetGroupArn
         :return: msg: str
         """
-        target_instances = self.get_target_instances()
+        target_instances = self.get_valid_target_instances()
         register_targets_num = int(len(target_instances) * (ratio-1))
         response_list = []
         if register_targets_num <= 0:
@@ -180,13 +189,9 @@ class AwsClient:
         shrink one instance into the self.TargetGroupArn
         :return: msg: str
         """
-        target_instances = self.get_target_instances()
-        target_instances_id = []
-        for item in target_instances:
-            if item['State'] != 'draining':
-                target_instances_id.append(item['Id'])
+        target_instances_id = self.get_valid_target_instances()
         flag, msg = True, ''
-        if len(target_instances_id) > 0:
+        if len(target_instances_id) > 1:
             unregister_instance_id = target_instances_id[0]
 
             # unregister instance from target group
@@ -234,12 +239,7 @@ class AwsClient:
         shrink one instance into the self.TargetGroupArn
         :return: msg: str
         """
-        target_instances = self.get_target_instances()
-        target_instances_id = []
-        for item in target_instances:
-            if item['State'] != 'draining':
-                target_instances_id.append(item['Id'])
-
+        target_instances_id = self.get_valid_target_instances()
         response_list = []
         if ratio < 1:
             return [False, "Ratio should be more than 1", response_list]
