@@ -42,6 +42,7 @@ def auto_scaling():
     current_time = datetime.now()
     cpu_utils = average_cpu_utils()
     config = current_config()
+    print(current_time)
     print(config)
     print(cpu_utils)
 
@@ -58,11 +59,11 @@ def auto_scaling():
     if cpu_utils > config.cpu_grow:
         response = awscli.grow_worker_by_ratio(config.ratio_expand)
         print('{} grow workers: {}'.format(current_time, response))
-        time.sleep(60)
+        #time.sleep(60)
     elif cpu_utils < config.cpu_shrink:
         response = awscli.shrink_worker_by_ratio(config.ratio_shrink)
         print('{} shrink workers: {}'.format(current_time, response))
-        time.sleep(60)
+        #time.sleep(60)
     else:
         print('{} nothing change'.format(current_time))
 
