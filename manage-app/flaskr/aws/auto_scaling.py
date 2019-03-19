@@ -42,6 +42,7 @@ def auto_scaling():
     current_time = datetime.now()
     cpu_utils = average_cpu_utils()
     config = current_config()
+    print('-----------auto_scaling------------')
     print(current_time)
     print(config)
     print(cpu_utils)
