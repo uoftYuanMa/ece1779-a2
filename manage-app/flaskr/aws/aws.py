@@ -286,7 +286,21 @@ class AwsClient:
 
 
     def clear_s3(self):
-        pass
+        self.s3.delete_objects(
+            Bucket=self.bk,
+            Delete={
+                'Objects': [
+                    {
+                        'Key': '*',
+                        #'VersionId': 'string'
+                    },
+                ],
+                'Quiet': True
+            },
+            # MFA='string',
+            # RequestPayer='requester',
+            # BypassGovernanceRetention=True | False
+        )
 
 if __name__ == '__main__':
     awscli = AwsClient()
