@@ -9,6 +9,8 @@ class AwsClient:
     def __init__(self):
         self.ec2 = boto3.client('ec2')
         self.elb = boto3.client('elbv2')
+        self.s3 = boto3.client('s3')
+        self.bk = 'ece1779-images'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:536627286469:targetgroup/target-group1/c0b38de79630ee69'
         self.cloudwatch = boto3.client('cloudwatch')
@@ -252,6 +254,7 @@ class AwsClient:
         
         return [True, "Success", response_list]
 
+
     def get_cpu_utils(self, instance_id, start_time, end_time):
         response = self.cloudwatch.get_metric_statistics(
             Namespace='AWS/EC2',
@@ -280,6 +283,10 @@ class AwsClient:
             return json.dumps(sorted(datapoints, key=lambda x: x[0]))
         else:
             return json.dumps([[]])
+
+
+    def clear_s3(self):
+        pass
 
 if __name__ == '__main__':
     awscli = AwsClient()

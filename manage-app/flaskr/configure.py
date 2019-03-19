@@ -1,12 +1,13 @@
 from flask import render_template, url_for, session, redirect, request, flash
 from flaskr import app
 from flaskr import db
-from flaskr.models import AutoScalingConfig
+from flaskr.models import AutoScalingConfig, RequestPerMinute, User, Image
 from flaskr import forms
 from datetime import datetime
 import traceback
 import json
 from sqlalchemy import desc
+import aws
 
 
 @app.route('/configure')
@@ -22,6 +23,7 @@ def configure():
         except Exception as e:
             traceback.print_tb(e.__traceback__)
             return render_template('error.html', msg='something goes wrong~')
+
 
 @app.route('/configure_auto_scaling', methods=['GET', 'POST'])
 def configure_auto_scaling():
@@ -65,6 +67,25 @@ def configure_auto_scaling():
 
             return redirect(url_for('configure'))
 
+        except Exception as e:
+            print(e)
+            traceback.print_tb(e.__traceback__)
+            return render_template('error.html', msg='something goes wrong~')
+
+
+@app.route('/clear_data', methods=['GET', 'POST'])
+def clear_data():
+    user = session['user'] if 'user' in session else None
+    if not user:
+        return redirect(url_for('login'))
+    else:
+        try:
+            AutoScalingConfig.query().delete()
+            RequestPerMinute.query().delete()
+            User.query().delete()
+            Image.query().delete()
+            awscli = aws.AwsClient()
+            awscli.clear_s3()
         except Exception as e:
             print(e)
             traceback.print_tb(e.__traceback__)

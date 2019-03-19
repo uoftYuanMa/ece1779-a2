@@ -108,7 +108,7 @@ def get_requests_per_minute(instance, start_time, end_time):
 
 # get start_time and end_time of latest [latest] seconds
 def get_time_span(latest):
-    end_time = datetime.now(timezone(app.config['ZONE'])) - timedelta(seconds=60)
-    start_time = end_time - timedelta(seconds=latest+60)
+    end_time = datetime.now(timezone(app.config['ZONE']))
+    start_time = end_time - timedelta(seconds=latest)
     return start_time, end_time
 
