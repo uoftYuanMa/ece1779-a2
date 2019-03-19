@@ -2,6 +2,7 @@ from flask import render_template, request, flash, redirect, url_for, session
 from flaskr import app
 from flaskr import forms
 from flaskr import db
+from flaskr import utils
 from flaskr.models import User
 import hashlib
 import base64
@@ -15,6 +16,7 @@ def hash_password(salt, password):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    utils.record_requests(app.config['INSTANCE_ID'])
     try:
         if 'user' in session:
             logout()
@@ -52,11 +54,13 @@ def login():
 
 @app.route('/logout')
 def logout():
+    utils.record_requests(app.config['INSTANCE_ID'])
     session.pop('user', None)
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    utils.record_requests(app.config['INSTANCE_ID'])
     try:
         if 'user' in session:
             logout()
@@ -96,6 +100,7 @@ def register():
 
 @app.route('/api/register', methods=['POST'])
 def register_api():
+    utils.record_requests(app.config['INSTANCE_ID'])
     try:
         username = str(request.args.get('username'))
         password = str(request.args.get('password'))

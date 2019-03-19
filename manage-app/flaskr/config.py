@@ -7,3 +7,4 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'mysql+pymysql://ece1779liuwl:ece1779liuwl@ece1779-db.cwufnxxah8dq.us-east-1.rds.amazonaws.com/ece1779'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    ZONE = 'Canada/Eastern'
