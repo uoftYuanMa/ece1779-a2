@@ -43,7 +43,6 @@ function clear_data() {
             if(data.flag == true) {
                 msg = 'All data cleared.'
                 showAlert(msg, 'alert-success')
-                $('#workers_table').DataTable().ajax.reload();
             } else {
                 showAlert(data.msg, 'alert-danger')
             }
@@ -57,4 +56,20 @@ function clear_data() {
             console.log(error)
         }
     });
+}
+
+function showAlert(msg, type) {
+    if (type == 'alert-warning') {
+        title = "Warning: "
+    } else if (type == 'alert-success') {
+        title = "Success: "
+    } else if (type == 'alert-danger') {
+        title = "Failure: "
+    } else { return ''}
+
+    msg = "<strong>" + title + "</strong>" + msg
+    alert = "<div class='alert " + type + " alert-dismissible fade show' role='alert'>" + msg
+    alert += "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span>"
+    alert += "</button></div>"
+    $('#msg').html(alert)
 }

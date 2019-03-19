@@ -7,7 +7,7 @@ from datetime import datetime
 import traceback
 import json
 from sqlalchemy import desc
-import aws
+from flaskr.aws import aws
 
 
 @app.route('/configure')
@@ -19,6 +19,13 @@ def configure():
         try:
             form = forms.ConfigForm()
             values = configure_auto_scaling_info()
+            if not values:
+                values = {
+                    'cpu_grow': -1,
+                    'cpu_shrink': -1,
+                    'ratio_expand': -1,
+                    'ratio_shrink': -1
+                }
             return render_template('configure.html', form=form, values=values)
         except Exception as e:
             traceback.print_tb(e.__traceback__)
@@ -80,17 +87,27 @@ def clear_data():
         return redirect(url_for('login'))
     else:
         try:
-            AutoScalingConfig.query().delete()
-            RequestPerMinute.query().delete()
-            User.query().delete()
-            Image.query().delete()
+            AutoScalingConfig.query.delete()
+            db.session.commit()
+            RequestPerMinute.query.delete()
+            db.session.commit()
+            User.query.delete()
+            db.session.commit()
+            Image.query.delete()
+            db.session.commit()
             awscli = aws.AwsClient()
             awscli.clear_s3()
+            return json.dumps({
+                'flag': True,
+                'msg': 'Success'
+            })
         except Exception as e:
             print(e)
             traceback.print_tb(e.__traceback__)
-            return render_template('error.html', msg='something goes wrong~')
-
+            return json.dumps({
+                'flag': False,
+                'msg': 'Fail to clear the data'
+            })
 
 # latest configure info
 def configure_auto_scaling_info():
