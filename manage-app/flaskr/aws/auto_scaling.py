@@ -29,7 +29,6 @@ def average_cpu_utils():
     cpu_sum, count = 0, 0
     for i in range(l):
         response = awscli.get_cpu_utils(valid_instances_id[i], start_time, end_time)
-        print(response)
         response = json.loads(response)
         print(response)
         if response and response[0]:
@@ -43,6 +42,7 @@ def auto_scaling():
     current_time = datetime.now()
     cpu_utils = average_cpu_utils()
     config = current_config()
+    print(config)
     print(cpu_utils)
 
     # if there is no valid instances, then do nothing.
@@ -58,11 +58,11 @@ def auto_scaling():
     if cpu_utils > config.cpu_grow:
         response = awscli.grow_worker_by_ratio(config.ratio_expand)
         print('{} grow workers: {}'.format(current_time, response))
-        #time.sleep(60)
+        time.sleep(60)
     elif cpu_utils < config.cpu_shrink:
         response = awscli.shrink_worker_by_ratio(config.ratio_shrink)
         print('{} shrink workers: {}'.format(current_time, response))
-        #time.sleep(60)
+        time.sleep(60)
     else:
         print('{} nothing change'.format(current_time))
 
@@ -78,7 +78,7 @@ def clear_requests():
 if __name__ == '__main__':
     # start auto-scaling
     schedule.every().minute.do(auto_scaling)
-    schedule.every(10).minutes.do(clear_requests)
+    schedule.every(60).minutes.do(clear_requests)
     while True:
         schedule.run_pending()
         time.sleep(1)
